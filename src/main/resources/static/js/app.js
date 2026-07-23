@@ -1,7 +1,6 @@
 let tempChart, humChart;
-let isLiveMode = true; // Прапорець режиму реального часу
+let isLiveMode = true;
 
-// Функція встановлення дат "Від початку доби до зараз"
 function setDefaultDates() {
     const now = new Date();
     const tzOffset = now.getTimezoneOffset() * 60000;
@@ -14,22 +13,18 @@ function setDefaultDates() {
     document.getElementById('startDate').value = startOfDay.toISOString().slice(0, 16);
 }
 
-// Викликається при натисканні кнопки "Показати"
 function applyCustomDates() {
-    isLiveMode = false; // Вимикаємо автозсув часу, оскільки користувач обрав свої дати
+    isLiveMode = false;
     fetchAndDrawCharts();
 }
 
-// Викликається при натисканні кнопки "Скинути"
 function resetToLive() {
-    isLiveMode = true; // Вмикаємо автозсув назад
-    setDefaultDates(); // Скидаємо поля на 00:00-зараз
-    fetchAndDrawCharts(); // Перемальовуємо
+    isLiveMode = true;
+    setDefaultDates();
+    fetchAndDrawCharts();
 }
 
-// Головна функція отримання даних
 async function fetchAndDrawCharts() {
-    // Якщо ми в режимі Live, перед кожним запитом зсуваємо праву межу часу на "ЗАРАЗ"
     if (isLiveMode) {
         const now = new Date();
         const tzOffset = now.getTimezoneOffset() * 60000;
@@ -56,7 +51,6 @@ async function fetchAndDrawCharts() {
 
         data.forEach(item => {
             const date = new Date(item.timestamp);
-            // Змінено локаль на українську 'uk-UA'
             timeLabels.push(date.toLocaleTimeString('uk-UA', {hour: '2-digit', minute: '2-digit'}));
 
             tempData.push(item.temperature);
@@ -113,20 +107,19 @@ function createChart(canvasId, label, labels, data, borderColor, bgColor) {
             responsive: true,
             maintainAspectRatio: false,
             animation: {
-                duration: 400 // Робимо анімацію оновлення графіків швидшою та плавнішою
+                duration: 400
             }
         }
     });
 }
 
-// Завантаження поточних налаштувань із сервера під час відкриття сторінки
 async function loadTargetSettings() {
     try {
         const response = await fetch('/api/sensor/settings');
         const data = await response.json();
         document.getElementById('targetTempInput').value = data.temp;
         document.getElementById('targetHumInput').value = data.hum;
-        document.getElementById('targetDevInput').value = data.dev; // Завантажуємо відхилення
+        document.getElementById('targetDevInput').value = data.dev;
     } catch (error) {
         console.error("Помилка завантаження налаштувань:", error);
     }
@@ -149,12 +142,9 @@ async function saveTargetSettings() {
     }
 }
 
-// Викликаємо завантаження налаштувань при старті
 loadTargetSettings();
 
-// Запуск під час завантаження
 setDefaultDates();
 fetchAndDrawCharts();
 
-// Фонове оновлення щохвилини (60000 мс)
 setInterval(fetchAndDrawCharts, 60000);
